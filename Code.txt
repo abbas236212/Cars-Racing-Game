@@ -1,0 +1,1128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Car Racing Game with Genetic Algorithm</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: Arial, sans-serif;
+    }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #020617;
+      color: white;
+    }
+
+    canvas {
+      display: block;
+      width: 100vw;
+      height: 100vh;
+      background: #14532d;
+    }
+
+    .panel {
+      position: fixed;
+      top: 18px;
+      right: 18px;
+      width: 315px;
+      max-height: calc(100vh - 36px);
+      overflow-y: auto;
+      background: rgba(15, 23, 42, 0.92);
+      border: 1px solid #334155;
+      border-radius: 18px;
+      padding: 16px;
+      box-shadow: 0 20px 70px rgba(0,0,0,0.45);
+      backdrop-filter: blur(10px);
+      z-index: 10;
+    }
+
+    .panel.hidden {
+      display: none;
+    }
+
+    h1 {
+      font-size: 21px;
+      color: #38bdf8;
+      margin-bottom: 8px;
+    }
+
+    p {
+      font-size: 13px;
+      color: #cbd5e1;
+      line-height: 1.45;
+      margin-bottom: 12px;
+    }
+
+    .stat {
+      background: #020617;
+      border: 1px solid #334155;
+      border-radius: 10px;
+      padding: 9px;
+      margin-bottom: 8px;
+      font-size: 14px;
+    }
+
+    .stat span {
+      color: #22c55e;
+      font-weight: bold;
+    }
+
+    label {
+      display: block;
+      margin-top: 10px;
+      margin-bottom: 5px;
+      color: #e2e8f0;
+      font-size: 13px;
+    }
+
+    select {
+      width: 100%;
+      padding: 10px;
+      border-radius: 10px;
+      background: #020617;
+      color: white;
+      border: 1px solid #334155;
+      outline: none;
+    }
+
+    button {
+      width: 100%;
+      padding: 11px;
+      border: none;
+      border-radius: 11px;
+      color: white;
+      font-size: 14px;
+      font-weight: bold;
+      cursor: pointer;
+      margin-top: 9px;
+      background: #2563eb;
+    }
+
+    button:hover {
+      background: #1d4ed8;
+    }
+
+    .green {
+      background: #16a34a;
+    }
+
+    .green:hover {
+      background: #15803d;
+    }
+
+    .red {
+      background: #dc2626;
+    }
+
+    .red:hover {
+      background: #b91c1c;
+    }
+
+    .yellow {
+      background: #ca8a04;
+    }
+
+    .yellow:hover {
+      background: #a16207;
+    }
+
+    .toggle-panel {
+      position: fixed;
+      top: 18px;
+      left: 18px;
+      z-index: 20;
+      width: auto;
+      padding: 11px 15px;
+      border-radius: 12px;
+      background: rgba(37, 99, 235, 0.95);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+    }
+
+    .front-controls {
+      position: fixed;
+      left: 50%;
+      bottom: 28px;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 12px;
+      z-index: 25;
+      background: rgba(2, 6, 23, 0.72);
+      padding: 12px;
+      border-radius: 18px;
+      border: 1px solid rgba(148, 163, 184, 0.35);
+      backdrop-filter: blur(10px);
+      box-shadow: 0 18px 50px rgba(0,0,0,0.45);
+    }
+
+    .front-controls button {
+      width: auto;
+      min-width: 150px;
+      margin: 0;
+      font-size: 15px;
+      padding: 13px 18px;
+    }
+
+    .countdown-box {
+      position: fixed;
+      left: 50%;
+      top: 43%;
+      transform: translate(-50%, -50%);
+      z-index: 40;
+      font-size: 86px;
+      font-weight: 900;
+      color: white;
+      text-shadow: 0 10px 35px rgba(0,0,0,0.8);
+      display: none;
+    }
+
+    .winner-box {
+      position: fixed;
+      left: 50%;
+      top: 40px;
+      transform: translateX(-50%);
+      background: rgba(2, 6, 23, 0.9);
+      border: 1px solid #38bdf8;
+      color: white;
+      padding: 14px 24px;
+      border-radius: 16px;
+      font-size: 22px;
+      font-weight: bold;
+      z-index: 30;
+      display: none;
+      box-shadow: 0 18px 50px rgba(0,0,0,0.5);
+    }
+
+    .keys {
+      background: #020617;
+      border: 1px solid #334155;
+      padding: 11px;
+      border-radius: 11px;
+      margin-top: 11px;
+      font-size: 13px;
+      line-height: 1.6;
+      color: #e2e8f0;
+    }
+
+    .note {
+      margin-top: 11px;
+      padding: 11px;
+      border-radius: 11px;
+      background: #082f49;
+      color: #bae6fd;
+      font-size: 12.5px;
+      line-height: 1.5;
+    }
+
+    @media (max-width: 700px) {
+      .panel {
+        width: calc(100vw - 36px);
+        left: 18px;
+        right: 18px;
+      }
+
+      .front-controls {
+        width: calc(100vw - 30px);
+        flex-direction: column;
+      }
+
+      .front-controls button {
+        width: 100%;
+      }
+
+      .countdown-box {
+        font-size: 64px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <canvas id="gameCanvas"></canvas>
+
+  <button class="toggle-panel" onclick="togglePanel()">☰ Menu</button>
+
+  <div class="countdown-box" id="countdownBox">3</div>
+  <div class="winner-box" id="winnerBox"></div>
+
+  <div class="front-controls">
+    <button id="mainRaceBtn" class="green" onclick="mainRaceButton()">Start Race</button>
+    <button class="red" onclick="resetRace()">Restart Race</button>
+  </div>
+
+  <div class="panel" id="panel">
+    <h1>Car Racing GA Game</h1>
+    <p>
+      Drive your car, race against competitors, or run Genetic Algorithm training mode.
+    </p>
+
+    <label>Competitors</label>
+    <select id="competitorSelect" onchange="resetRace()">
+      <option value="0">0 Competitors</option>
+      <option value="1">1 Competitor</option>
+      <option value="2">2 Competitors</option>
+      <option value="3" selected>3 Competitors</option>
+    </select>
+
+    <label>Laps to Win</label>
+    <select id="lapsSelect" onchange="resetRace()">
+      <option value="1">1 Lap</option>
+      <option value="2" selected>2 Laps</option>
+      <option value="3">3 Laps</option>
+    </select>
+
+    <div class="stat">Mode: <span id="modeText">Manual Race</span></div>
+    <div class="stat">Race Status: <span id="statusText">Ready</span></div>
+    <div class="stat">Your Lap: <span id="lapText">0</span></div>
+    <div class="stat">Your Checkpoint: <span id="checkpointText">0</span>/4</div>
+    <div class="stat">Speed: <span id="speedText">0</span></div>
+    <div class="stat">Competitors: <span id="competitorText">3</span></div>
+    <div class="stat">GA Generation: <span id="generationText">1</span></div>
+    <div class="stat">GA Best Fitness: <span id="fitnessText">0</span></div>
+
+    <button class="green" onclick="setRaceMode()">Manual Race Mode</button>
+    <button class="yellow" onclick="setGAMode()">Genetic Algorithm Training</button>
+    <button onclick="goFullScreen()">Full Screen</button>
+    <button class="red" onclick="resetEverything()">Reset Everything</button>
+
+    <div class="keys">
+      <b>Controls:</b><br>
+      W / Arrow Up = Accelerate<br>
+      S / Arrow Down = Brake / Reverse<br>
+      A / Arrow Left = Turn Left<br>
+      D / Arrow Right = Turn Right<br>
+      Space = Hand Brake<br>
+      R = Reset Car<br>
+      Enter = Start Race
+    </div>
+
+    <div class="note">
+      Finish line is bigger now. Lap detection is also easier, so the car does not need to pass exactly on a small point.
+    </div>
+  </div>
+
+  <script>
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
+
+    const modeText = document.getElementById("modeText");
+    const statusText = document.getElementById("statusText");
+    const lapText = document.getElementById("lapText");
+    const checkpointText = document.getElementById("checkpointText");
+    const speedText = document.getElementById("speedText");
+    const competitorText = document.getElementById("competitorText");
+    const generationText = document.getElementById("generationText");
+    const fitnessText = document.getElementById("fitnessText");
+
+    const winnerBox = document.getElementById("winnerBox");
+    const countdownBox = document.getElementById("countdownBox");
+    const mainRaceBtn = document.getElementById("mainRaceBtn");
+
+    const competitorSelect = document.getElementById("competitorSelect");
+    const lapsSelect = document.getElementById("lapsSelect");
+
+    let W = window.innerWidth;
+    let H = window.innerHeight;
+
+    let outerTrack, innerGrass, startPoint, checkpoints, checkpointRadius, centerLine;
+
+    let mode = "race";
+    let raceState = "ready";
+    let countdownStartTime = 0;
+    let keys = {};
+    let winner = null;
+
+    const player = {
+      name: "You",
+      x: 0,
+      y: 0,
+      angle: 0,
+      speed: 0,
+      maxSpeed: 7.2,
+      acceleration: 0.19,
+      friction: 0.965,
+      turnSpeed: 0.058,
+      checkpoint: 0,
+      lap: 0,
+      crashed: false,
+      color: "#38bdf8"
+    };
+
+    let competitors = [];
+    const competitorColors = ["#f97316", "#a855f7", "#ec4899"];
+
+    function resizeCanvas() {
+      W = window.innerWidth;
+      H = window.innerHeight;
+      canvas.width = W;
+      canvas.height = H;
+      setupTrack();
+    }
+
+    function setupTrack() {
+      const minSize = Math.min(W, H);
+      const margin = Math.max(35, minSize * 0.075);
+
+      outerTrack = {
+        x: margin,
+        y: margin,
+        w: W - margin * 2,
+        h: H - margin * 2
+      };
+
+      innerGrass = {
+        w: outerTrack.w * 0.42,
+        h: outerTrack.h * 0.36
+      };
+
+      innerGrass.x = outerTrack.x + outerTrack.w / 2 - innerGrass.w / 2;
+      innerGrass.y = outerTrack.y + outerTrack.h / 2 - innerGrass.h / 2;
+
+      const leftLaneX = (outerTrack.x + innerGrass.x) / 2;
+      const rightLaneX = (innerGrass.x + innerGrass.w + outerTrack.x + outerTrack.w) / 2;
+      const topLaneY = (outerTrack.y + innerGrass.y) / 2;
+      const bottomLaneY = (innerGrass.y + innerGrass.h + outerTrack.y + outerTrack.h) / 2;
+
+      startPoint = {
+        x: leftLaneX,
+        y: bottomLaneY,
+        angle: 0
+      };
+
+      checkpoints = [
+        { x: rightLaneX, y: bottomLaneY },
+        { x: rightLaneX, y: topLaneY },
+        { x: leftLaneX, y: topLaneY },
+        { x: leftLaneX, y: bottomLaneY }
+      ];
+
+      centerLine = {
+        x: leftLaneX,
+        y: topLaneY,
+        w: rightLaneX - leftLaneX,
+        h: bottomLaneY - topLaneY
+      };
+
+      checkpointRadius = Math.max(65, minSize * 0.075);
+    }
+
+    function insideRect(x, y, rect) {
+      return x >= rect.x &&
+             x <= rect.x + rect.w &&
+             y >= rect.y &&
+             y <= rect.y + rect.h;
+    }
+
+    function isOnTrack(x, y) {
+      return insideRect(x, y, outerTrack) && !insideRect(x, y, innerGrass);
+    }
+
+    function distance(a, b) {
+      return Math.hypot(a.x - b.x, a.y - b.y);
+    }
+
+    function angleDiff(target, current) {
+      let diff = target - current;
+      while (diff > Math.PI) diff -= Math.PI * 2;
+      while (diff < -Math.PI) diff += Math.PI * 2;
+      return diff;
+    }
+
+    function clamp(value, min, max) {
+      return Math.max(min, Math.min(max, value));
+    }
+
+    document.addEventListener("keydown", function(e) {
+      keys[e.key.toLowerCase()] = true;
+
+      if (
+        e.key === "ArrowUp" ||
+        e.key === "ArrowDown" ||
+        e.key === "ArrowLeft" ||
+        e.key === "ArrowRight" ||
+        e.key === " "
+      ) {
+        e.preventDefault();
+      }
+
+      if (e.key.toLowerCase() === "r") {
+        resetPlayerOnly();
+      }
+
+      if (e.key === "Enter") {
+        mainRaceButton();
+      }
+    });
+
+    document.addEventListener("keyup", function(e) {
+      keys[e.key.toLowerCase()] = false;
+    });
+
+    function mainRaceButton() {
+      if (mode !== "race") {
+        setRaceMode();
+        return;
+      }
+
+      if (raceState === "ready" || raceState === "finished") {
+        startCountdown();
+      } else if (raceState === "running" || raceState === "countdown") {
+        resetRace();
+      }
+    }
+
+    function startCountdown() {
+      winner = null;
+      hideWinner();
+      raceState = "countdown";
+      countdownStartTime = performance.now();
+      countdownBox.style.display = "block";
+      mainRaceBtn.textContent = "Starting...";
+      mainRaceBtn.className = "yellow";
+    }
+
+    function updateCountdown() {
+      if (raceState !== "countdown") return;
+
+      const elapsed = (performance.now() - countdownStartTime) / 1000;
+
+      if (elapsed < 1) {
+        countdownBox.textContent = "3";
+      } else if (elapsed < 2) {
+        countdownBox.textContent = "2";
+      } else if (elapsed < 3) {
+        countdownBox.textContent = "1";
+      } else if (elapsed < 3.7) {
+        countdownBox.textContent = "GO!";
+      } else {
+        countdownBox.style.display = "none";
+        raceState = "running";
+        mainRaceBtn.textContent = "Restart Race";
+        mainRaceBtn.className = "red";
+      }
+    }
+
+    function resetPlayerOnly() {
+      player.x = startPoint.x;
+      player.y = startPoint.y;
+      player.angle = startPoint.angle;
+      player.speed = 0;
+      player.checkpoint = 0;
+      player.lap = 0;
+      player.crashed = false;
+    }
+
+    function makeCompetitor(index) {
+      return {
+        name: "Competitor " + (index + 1),
+        x: startPoint.x - 45 * (index + 1),
+        y: startPoint.y + (index % 2 === 0 ? -28 : 28),
+        angle: startPoint.angle,
+        speed: 0,
+        checkpoint: 0,
+        lap: 0,
+        crashed: false,
+        color: competitorColors[index],
+        dna: {
+          maxSpeed: 5.2 + Math.random() * 1.1,
+          acceleration: 0.12 + Math.random() * 0.06,
+          turnSpeed: 0.045 + Math.random() * 0.025,
+          caution: 0.35 + Math.random() * 0.35
+        }
+      };
+    }
+
+    function resetRace() {
+      mode = "race";
+      raceState = "ready";
+      winner = null;
+      hideWinner();
+      countdownBox.style.display = "none";
+
+      player.x = startPoint.x;
+      player.y = startPoint.y;
+      player.angle = startPoint.angle;
+      player.speed = 0;
+      player.checkpoint = 0;
+      player.lap = 0;
+      player.crashed = false;
+
+      competitors = [];
+      const count = Number(competitorSelect.value);
+
+      for (let i = 0; i < count; i++) {
+        competitors.push(makeCompetitor(i));
+      }
+
+      mainRaceBtn.textContent = "Start Race";
+      mainRaceBtn.className = "green";
+    }
+
+    function resetEverything() {
+      gaGeneration = 1;
+      gaBestFitness = 0;
+      createGAPopulation();
+      resetRace();
+    }
+
+    function handleCheckpoint(car) {
+      const target = checkpoints[car.checkpoint];
+
+      if (distance(car, target) < checkpointRadius) {
+        car.checkpoint++;
+
+        if (car.checkpoint >= checkpoints.length) {
+          car.lap++;
+          car.checkpoint = 0;
+        }
+      }
+    }
+
+    function checkWinner(car) {
+      const lapsToWin = Number(lapsSelect.value);
+
+      if (!winner && car.lap >= lapsToWin) {
+        winner = car.name;
+        raceState = "finished";
+
+        if (car.name === "You") {
+          showWinner("You Win!");
+        } else {
+          showWinner(car.name + " Wins!");
+        }
+
+        mainRaceBtn.textContent = "Race Again";
+        mainRaceBtn.className = "green";
+      }
+    }
+
+    function updatePlayer() {
+      if (mode !== "race") return;
+      if (raceState !== "running") return;
+      if (winner) return;
+
+      if (keys["arrowup"] || keys["w"]) {
+        player.speed += player.acceleration;
+      }
+
+      if (keys["arrowdown"] || keys["s"]) {
+        player.speed -= player.acceleration;
+      }
+
+      if (keys[" "]) {
+        player.speed *= 0.9;
+      }
+
+      player.speed = clamp(player.speed, -3.5, player.maxSpeed);
+
+      if (Math.abs(player.speed) > 0.2) {
+        const turnPower = player.turnSpeed * (player.speed > 0 ? 1 : -1);
+
+        if (keys["arrowleft"] || keys["a"]) {
+          player.angle -= turnPower;
+        }
+
+        if (keys["arrowright"] || keys["d"]) {
+          player.angle += turnPower;
+        }
+      }
+
+      const nextX = player.x + Math.cos(player.angle) * player.speed;
+      const nextY = player.y + Math.sin(player.angle) * player.speed;
+
+      if (isOnTrack(nextX, nextY)) {
+        player.x = nextX;
+        player.y = nextY;
+        player.crashed = false;
+      } else {
+        player.speed *= -0.35;
+        player.crashed = true;
+      }
+
+      player.speed *= player.friction;
+
+      handleCheckpoint(player);
+      checkWinner(player);
+    }
+
+    function updateCompetitor(car) {
+      if (mode !== "race") return;
+      if (raceState !== "running") return;
+      if (winner) return;
+
+      const target = checkpoints[car.checkpoint];
+      const desiredAngle = Math.atan2(target.y - car.y, target.x - car.x);
+      const diff = angleDiff(desiredAngle, car.angle);
+
+      let targetSpeed = car.dna.maxSpeed;
+
+      if (Math.abs(diff) > 0.75) {
+        targetSpeed *= car.dna.caution;
+      }
+
+      if (car.speed < targetSpeed) {
+        car.speed += car.dna.acceleration;
+      } else {
+        car.speed *= 0.985;
+      }
+
+      car.angle += clamp(diff, -car.dna.turnSpeed, car.dna.turnSpeed);
+
+      const nextX = car.x + Math.cos(car.angle) * car.speed;
+      const nextY = car.y + Math.sin(car.angle) * car.speed;
+
+      if (isOnTrack(nextX, nextY)) {
+        car.x = nextX;
+        car.y = nextY;
+        car.crashed = false;
+      } else {
+        car.speed *= -0.25;
+        car.angle += diff > 0 ? -0.35 : 0.35;
+        car.crashed = true;
+      }
+
+      handleCheckpoint(car);
+      checkWinner(car);
+    }
+
+    function drawTrack() {
+      ctx.clearRect(0, 0, W, H);
+
+      ctx.fillStyle = "#166534";
+      ctx.fillRect(0, 0, W, H);
+
+      ctx.fillStyle = "#334155";
+      roundRect(outerTrack.x, outerTrack.y, outerTrack.w, outerTrack.h, 35, true);
+
+      ctx.fillStyle = "#166534";
+      roundRect(innerGrass.x, innerGrass.y, innerGrass.w, innerGrass.h, 30, true);
+
+      ctx.strokeStyle = "#f8fafc";
+      ctx.lineWidth = 5;
+      roundRect(outerTrack.x, outerTrack.y, outerTrack.w, outerTrack.h, 35, false);
+      roundRect(innerGrass.x, innerGrass.y, innerGrass.w, innerGrass.h, 30, false);
+
+      ctx.setLineDash([24, 20]);
+      ctx.strokeStyle = "#facc15";
+      ctx.lineWidth = 3;
+      roundRect(centerLine.x, centerLine.y, centerLine.w, centerLine.h, 24, false);
+      ctx.setLineDash([]);
+
+      drawFinishLine();
+
+      for (let i = 0; i < checkpoints.length; i++) {
+        const cp = checkpoints[i];
+
+        ctx.beginPath();
+        ctx.arc(cp.x, cp.y, checkpointRadius * 0.32, 0, Math.PI * 2);
+        ctx.fillStyle = i === checkpoints.length - 1 ? "#ef4444" : "#22c55e";
+        ctx.fill();
+
+        ctx.fillStyle = "#ffffff";
+        ctx.font = "bold 15px Arial";
+        ctx.textAlign = "center";
+        ctx.fillText(i + 1, cp.x, cp.y + 5);
+      }
+
+      ctx.textAlign = "left";
+    }
+
+    function drawFinishLine() {
+      const minSize = Math.min(W, H);
+
+      const blockSize = Math.max(14, minSize * 0.026);
+      const cols = 3;
+      const rows = 8;
+
+      const x = startPoint.x - blockSize * 1.5;
+      const y = startPoint.y - blockSize * 4;
+
+      for (let row = 0; row < rows; row++) {
+        for (let col = 0; col < cols; col++) {
+          ctx.fillStyle = (row + col) % 2 === 0 ? "#ffffff" : "#020617";
+          ctx.fillRect(
+            x + col * blockSize,
+            y + row * blockSize,
+            blockSize,
+            blockSize
+          );
+        }
+      }
+
+      ctx.strokeStyle = "#facc15";
+      ctx.lineWidth = 4;
+      ctx.strokeRect(x - 4, y - 4, cols * blockSize + 8, rows * blockSize + 8);
+
+      ctx.fillStyle = "#ffffff";
+      ctx.font = "bold 18px Arial";
+      ctx.fillText("FINISH", x - 18, y - 12);
+    }
+
+    function roundRect(x, y, w, h, r, fill) {
+      ctx.beginPath();
+      ctx.moveTo(x + r, y);
+      ctx.lineTo(x + w - r, y);
+      ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+      ctx.lineTo(x + w, y + h - r);
+      ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+      ctx.lineTo(x + r, y + h);
+      ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+      ctx.lineTo(x, y + r);
+      ctx.quadraticCurveTo(x, y, x + r, y);
+      ctx.closePath();
+
+      if (fill) ctx.fill();
+      else ctx.stroke();
+    }
+
+    function drawCar(car, color, scale = 1) {
+      ctx.save();
+      ctx.translate(car.x, car.y);
+      ctx.rotate(car.angle);
+
+      ctx.fillStyle = color;
+      ctx.fillRect(-18 * scale, -10 * scale, 36 * scale, 20 * scale);
+
+      ctx.fillStyle = "#020617";
+      ctx.fillRect(-10 * scale, -13 * scale, 8 * scale, 5 * scale);
+      ctx.fillRect(7 * scale, -13 * scale, 8 * scale, 5 * scale);
+      ctx.fillRect(-10 * scale, 8 * scale, 8 * scale, 5 * scale);
+      ctx.fillRect(7 * scale, 8 * scale, 8 * scale, 5 * scale);
+
+      ctx.fillStyle = "#e0f2fe";
+      ctx.fillRect(4 * scale, -6 * scale, 9 * scale, 12 * scale);
+
+      ctx.fillStyle = "#111827";
+      ctx.fillRect(-8 * scale, -7 * scale, 10 * scale, 14 * scale);
+
+      ctx.restore();
+    }
+
+    function drawRaceCars() {
+      for (const car of competitors) {
+        drawCar(car, car.crashed ? "#ef4444" : car.color, 1);
+      }
+
+      drawCar(player, player.crashed ? "#ef4444" : player.color, 1.12);
+    }
+
+    function drawTopText() {
+      ctx.fillStyle = "rgba(2, 6, 23, 0.72)";
+      ctx.fillRect(20, 78, 455, 92);
+
+      ctx.fillStyle = "#ffffff";
+      ctx.font = "bold 18px Arial";
+
+      if (mode === "race") {
+        if (raceState === "ready") {
+          ctx.fillText("Race Ready", 35, 108);
+          ctx.font = "14px Arial";
+          ctx.fillText("Press Start Race. Competitors will wait with you.", 35, 135);
+        } else if (raceState === "countdown") {
+          ctx.fillText("Race Starting...", 35, 108);
+          ctx.font = "14px Arial";
+          ctx.fillText("Get ready. Race starts after countdown.", 35, 135);
+        } else {
+          ctx.fillText("Manual Race Mode", 35, 108);
+          ctx.font = "14px Arial";
+          ctx.fillText("Drive with WASD or Arrow Keys. Complete all checkpoints.", 35, 135);
+        }
+      } else {
+        ctx.fillText("Genetic Algorithm Training Mode", 35, 108);
+        ctx.font = "14px Arial";
+        ctx.fillText("Yellow car is the best AI car in current generation.", 35, 135);
+      }
+    }
+
+    function updateUI() {
+      modeText.textContent = mode === "race" ? "Manual Race" : "GA Training";
+
+      if (raceState === "ready") statusText.textContent = "Ready";
+      else if (raceState === "countdown") statusText.textContent = "Starting";
+      else if (raceState === "running") statusText.textContent = "Running";
+      else statusText.textContent = "Finished";
+
+      lapText.textContent = player.lap;
+      checkpointText.textContent = player.checkpoint;
+      speedText.textContent = Math.abs(player.speed).toFixed(1);
+      competitorText.textContent = competitors.length;
+      generationText.textContent = gaGeneration;
+      fitnessText.textContent = Math.floor(gaBestFitness);
+    }
+
+    function showWinner(text) {
+      winnerBox.textContent = text;
+      winnerBox.style.display = "block";
+    }
+
+    function hideWinner() {
+      winnerBox.style.display = "none";
+    }
+
+    function setRaceMode() {
+      resetRace();
+    }
+
+    function setGAMode() {
+      mode = "ga";
+      raceState = "running";
+      winner = null;
+      hideWinner();
+      countdownBox.style.display = "none";
+      mainRaceBtn.textContent = "Back to Race";
+      mainRaceBtn.className = "green";
+      createGAPopulation();
+    }
+
+    function togglePanel() {
+      document.getElementById("panel").classList.toggle("hidden");
+    }
+
+    function goFullScreen() {
+      if (document.documentElement.requestFullscreen) {
+        document.documentElement.requestFullscreen();
+      }
+    }
+
+    const GA_POPULATION = 40;
+    const DNA_LENGTH = 850;
+    const MUTATION_RATE = 0.055;
+
+    let gaCars = [];
+    let gaStep = 0;
+    let gaGeneration = 1;
+    let gaBestFitness = 0;
+
+    function randomGene() {
+      return {
+        steer: Math.random() * 2 - 1,
+        throttle: Math.random()
+      };
+    }
+
+    function randomDNA() {
+      const dna = [];
+      for (let i = 0; i < DNA_LENGTH; i++) {
+        dna.push(randomGene());
+      }
+      return dna;
+    }
+
+    class GACar {
+      constructor(dna) {
+        this.name = "GA Car";
+        this.x = startPoint.x;
+        this.y = startPoint.y;
+        this.angle = startPoint.angle;
+        this.speed = 0;
+        this.dna = dna || randomDNA();
+        this.alive = true;
+        this.checkpoint = 0;
+        this.lap = 0;
+        this.fitness = 0;
+      }
+
+      update() {
+        if (!this.alive) return;
+
+        const gene = this.dna[gaStep] || randomGene();
+
+        this.speed += gene.throttle * 0.16;
+        this.speed *= 0.982;
+        this.speed = clamp(this.speed, 0, 6.4);
+
+        if (this.speed > 0.2) {
+          this.angle += gene.steer * 0.075;
+        }
+
+        const nextX = this.x + Math.cos(this.angle) * this.speed;
+        const nextY = this.y + Math.sin(this.angle) * this.speed;
+
+        if (isOnTrack(nextX, nextY)) {
+          this.x = nextX;
+          this.y = nextY;
+        } else {
+          this.alive = false;
+        }
+
+        const target = checkpoints[this.checkpoint];
+
+        if (distance(this, target) < checkpointRadius) {
+          this.checkpoint++;
+
+          if (this.checkpoint >= checkpoints.length) {
+            this.lap++;
+            this.checkpoint = 0;
+
+            if (this.lap >= 1) {
+              this.alive = false;
+            }
+          }
+        }
+      }
+
+      calculateFitness() {
+        const target = checkpoints[this.checkpoint];
+        const dist = distance(this, target);
+
+        this.fitness =
+          this.lap * 60000 +
+          this.checkpoint * 12000 +
+          Math.max(0, 2500 - dist);
+
+        return this.fitness;
+      }
+    }
+
+    function createGAPopulation() {
+      gaCars = [];
+      gaStep = 0;
+
+      for (let i = 0; i < GA_POPULATION; i++) {
+        gaCars.push(new GACar(randomDNA()));
+      }
+    }
+
+    function selectParent(sortedCars) {
+      const limit = Math.min(12, sortedCars.length);
+      const a = sortedCars[Math.floor(Math.random() * limit)];
+      const b = sortedCars[Math.floor(Math.random() * limit)];
+
+      return a.fitness > b.fitness ? a : b;
+    }
+
+    function crossover(dnaA, dnaB) {
+      const child = [];
+      const cut = Math.floor(Math.random() * DNA_LENGTH);
+
+      for (let i = 0; i < DNA_LENGTH; i++) {
+        child.push(i < cut ? { ...dnaA[i] } : { ...dnaB[i] });
+      }
+
+      return child;
+    }
+
+    function mutate(dna) {
+      for (let i = 0; i < dna.length; i++) {
+        if (Math.random() < MUTATION_RATE) {
+          dna[i].steer += Math.random() * 0.8 - 0.4;
+          dna[i].throttle += Math.random() * 0.5 - 0.25;
+
+          dna[i].steer = clamp(dna[i].steer, -1, 1);
+          dna[i].throttle = clamp(dna[i].throttle, 0, 1);
+        }
+      }
+
+      return dna;
+    }
+
+    function nextGAGeneration() {
+      for (const car of gaCars) {
+        car.calculateFitness();
+      }
+
+      gaCars.sort((a, b) => b.fitness - a.fitness);
+
+      if (gaCars[0].fitness > gaBestFitness) {
+        gaBestFitness = gaCars[0].fitness;
+      }
+
+      const newCars = [];
+
+      for (let i = 0; i < 5; i++) {
+        newCars.push(new GACar(gaCars[i].dna.map(gene => ({ ...gene }))));
+      }
+
+      while (newCars.length < GA_POPULATION) {
+        const parentA = selectParent(gaCars);
+        const parentB = selectParent(gaCars);
+
+        let childDNA = crossover(parentA.dna, parentB.dna);
+        childDNA = mutate(childDNA);
+
+        newCars.push(new GACar(childDNA));
+      }
+
+      gaCars = newCars;
+      gaStep = 0;
+      gaGeneration++;
+    }
+
+    function updateGA() {
+      if (mode !== "ga") return;
+
+      for (let speed = 0; speed < 3; speed++) {
+        if (gaStep >= DNA_LENGTH || gaCars.every(car => !car.alive)) {
+          nextGAGeneration();
+          break;
+        }
+
+        for (const car of gaCars) {
+          car.update();
+        }
+
+        gaStep++;
+      }
+    }
+
+    function drawGACars() {
+      if (mode !== "ga") return;
+
+      const sorted = [...gaCars].sort((a, b) => b.calculateFitness() - a.calculateFitness());
+      const best = sorted[0];
+
+      for (const car of gaCars) {
+        if (car !== best && car.alive) {
+          drawCar(car, "rgba(148, 163, 184, 0.45)", 0.82);
+        }
+      }
+
+      if (best) {
+        drawCar(best, "#facc15", 1.15);
+      }
+    }
+
+    function gameLoop() {
+      updateCountdown();
+      updatePlayer();
+
+      for (const car of competitors) {
+        updateCompetitor(car);
+      }
+
+      updateGA();
+
+      drawTrack();
+
+      if (mode === "race") {
+        drawRaceCars();
+      } else {
+        drawGACars();
+      }
+
+      drawTopText();
+      updateUI();
+
+      requestAnimationFrame(gameLoop);
+    }
+
+    window.addEventListener("resize", function() {
+      resizeCanvas();
+      resetRace();
+      createGAPopulation();
+    });
+
+    resizeCanvas();
+    resetRace();
+    createGAPopulation();
+    gameLoop();
+  </script>
+</body>
+</html>
